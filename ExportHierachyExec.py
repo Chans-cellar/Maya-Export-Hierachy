@@ -129,7 +129,7 @@ class ExportHierachy(QWidget):
 
     # function to parent the selected layers to the geometry
     def groupToGeometry(self):
-        # establish the undo scope
+        # begin the undo scope
         cmds.undoInfo(openChunk=True)
 
         try:
