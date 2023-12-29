@@ -99,8 +99,10 @@ class ExportHierachy(QWidget):
         cmds.setAttr('Main.jointVis', 1)
         self.isSkeletonUnparented = True
 
+    # function to un-parent the Geometry
     def unparentGeometry(self):
         meshGroupName = None
+
         if self.Face.isChecked():
             # extract the body object name from rig names
             FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
