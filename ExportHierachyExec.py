@@ -115,7 +115,10 @@ class ExportHierachy(QWidget):
             meshGroupName = 'Hairs'
 
         # get the list of visible meshes in the specific group
-        childList = cmds.ls(cmds.listRelatives(meshGroupName, c=True), v=True)
+        try:
+            childList = cmds.ls(cmds.listRelatives(meshGroupName, c=True), v=True)
+        except ValueError:
+            print(meshGroupName + ' not found')
 
         # remove unwanted child meshes of the group
         if len(childList) > 0:
@@ -123,6 +126,8 @@ class ExportHierachy(QWidget):
                 removals = ['Mesh_Body', 'proxy']
                 if item in removals:
                     childList.remove(item)
+        else:
+            print('No such mesh')
 
         # select the list of objects
         cmds.select(childList)
