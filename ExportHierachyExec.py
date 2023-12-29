@@ -26,8 +26,8 @@ class ExportHierachy(QWidget):
         self.setWindowTitle('Export Hierarchy')
         self.setWindowFlags(Qt.Window)
         self.init_UI()
-        self.isSkeletonUnparented = False
-        self.isGeometryUnparented = False
+        self.isSkeletonParentTo_W = False
+        self.isGeometryParentTo_W = False
 
     def init_UI(self):
         usd = cmds.internalVar(usd=True)
@@ -47,45 +47,50 @@ class ExportHierachy(QWidget):
 
         self.ui.createHierachy_Button.clicked.connect(self.createHierachy)
 
-        self.inspectRootDAGs()
+        self.loadRigName()
 
     def run_UI(self):
         self.ui.show()
 
-    def inspectRootDAGs(self):
-
+    def loadRigName(self):
         self.rigGroup_comboBox.clear()
 
         # list the top level dag objects
         grpList = cmds.ls(assemblies=True)
         for item in grpList:
-
             # get the objects that endswith rig keyword and add to the dropdown
             if item.endswith('Rig'):
                 self.rigGroup_comboBox.addItem(item)
 
+    def inspectRootDAGs(self):
+
+        # list the top level dag objects
+        grpList = cmds.ls(assemblies=True)
+
+        geoNames = ['Geometry', '|Geometry']
         # check whether there are unparented geometry objects in top level
-        if 'Geometry' or '|Geometry' in grpList:
-            self.isGeometryUnparented = True
+        if any(grp in geoNames for grp in grpList):
+            self.isGeometryParentTo_W = True
         else:
-            self.isGeometryUnparented = False
+            self.isGeometryParentTo_W = False
 
         # check whether there are unparented skeleton objects in top level
         if 'DeformationSystem' in grpList:
-            self.isSkeletonUnparented = True
+            self.isSkeletonParentTo_W = True
         else:
-            self.isSkeletonUnparented = False
+            self.isSkeletonParentTo_W = False
 
     def createHierachy(self):
 
         self.inspectRootDAGs()
 
         # un-parent the deformation system
-        if not self.isSkeletonUnparented:
+        if not self.isSkeletonParentTo_W:
             self.unparentSkeleton()
+        print(self.isGeometryParentTo_W)
 
         # un-parent the geometry objects
-        if self.isGeometryUnparented:
+        if self.isGeometryParentTo_W:
             cmds.undoInfo(closeChunk=True)
             cmds.undo()
             print("Tasks undone successfully")
@@ -96,8 +101,18 @@ class ExportHierachy(QWidget):
 
         cmds.select('DeformationSystem')
         cmds.parent(w=True)
+        self.isSkeletonParentTo_W = True
         cmds.setAttr('Main.jointVis', 1)
-        self.isSkeletonUnparented = True
+
+        # get level2 grandchildren of the deformation system
+        childJoints = cmds.listRelatives(cmds.listRelatives(cmds.ls(sl=True)[0], c=True), c=True, type='joint',
+                                         fullPath=True)
+        for joint in childJoints:
+            # select the bat_jnt and rename
+            if joint.endswith('bat_jnt'):
+                cmds.select(joint)
+                cmds.rename('BatOffset_1')
+                print('renamed successfully')
 
     # function to un-parent the Geometry
     def unparentGeometry(self):
@@ -121,16 +136,17 @@ class ExportHierachy(QWidget):
             print(meshGroupName + ' not found')
 
         # remove unwanted child meshes of the group
+        cleanedChildList = []
         if len(childList) > 0:
             for item in childList:
-                removals = ['Mesh_Body', 'proxy']
-                if item in removals:
-                    childList.remove(item)
+                removals = ['Mesh_Body', 'proxy', 'Mesh_HairBack_1']
+                if item not in removals:
+                    cleanedChildList.append(item)
         else:
             print('No such mesh')
 
         # select the list of objects
-        cmds.select(childList)
+        cmds.select(cleanedChildList)
         self.groupToGeometry()
 
     # function to parent the selected layers to the geometry
@@ -143,7 +159,7 @@ class ExportHierachy(QWidget):
             cmds.parent(w=True)
             cmds.group()
             cmds.rename(cmds.ls(sl=True)[0], 'Geometry')
-            self.isGeometryUnparented = True
+            self.isGeometryParentTo_W = True
         finally:
             print('chunk open')
 
