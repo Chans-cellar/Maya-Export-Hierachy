@@ -118,10 +118,11 @@ class ExportHierachy(QWidget):
         childList = cmds.ls(cmds.listRelatives(meshGroupName, c=True), v=True)
 
         # remove unwanted child meshes of the group
-        for item in childList:
-            removals = ['Mesh_Body', 'proxy']
-            if item in removals:
-                childList.remove(item)
+        if len(childList) > 0:
+            for item in childList:
+                removals = ['Mesh_Body', 'proxy']
+                if item in removals:
+                    childList.remove(item)
 
         # select the list of objects
         cmds.select(childList)
