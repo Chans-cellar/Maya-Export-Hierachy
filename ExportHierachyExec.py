@@ -87,7 +87,6 @@ class ExportHierachy(QWidget):
         # un-parent the deformation system
         if not self.isSkeletonParentTo_W:
             self.unparentSkeleton()
-        print(self.isGeometryParentTo_W)
 
         # un-parent the geometry objects
         if self.isGeometryParentTo_W:
@@ -139,7 +138,7 @@ class ExportHierachy(QWidget):
         cleanedChildList = []
         if len(childList) > 0:
             for item in childList:
-                removals = ['Mesh_Body', 'proxy', 'Mesh_HairBack_1']
+                removals = ['Mesh_Body', 'proxy', 'Mesh_HairBack_1', 'Mesh_HairBack']
                 if item not in removals:
                     cleanedChildList.append(item)
         else:
