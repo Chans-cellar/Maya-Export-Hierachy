@@ -28,6 +28,7 @@ class ExportHierachy(QWidget):
         self.init_UI()
         self.isSkeletonParentTo_W = False
         self.isGeometryParentTo_W = False
+        self.fullRigFlag = False
 
     def init_UI(self):
         usd = cmds.internalVar(usd=True)
@@ -44,6 +45,7 @@ class ExportHierachy(QWidget):
         self.Face = self.ui.Face_RadioButton
         self.Beard = self.ui.Beard_RadioButton
         self.Hair = self.ui.Hair_RadioButton
+        self.FullRig = self.ui.FullRig_RadioButton
 
         self.ui.createHierachy_Button.clicked.connect(self.createHierachy)
 
@@ -115,19 +117,34 @@ class ExportHierachy(QWidget):
 
     # function to un-parent the Geometry
     def unparentGeometry(self):
-        meshGroupName = None
 
-        if self.Face.isChecked():
-            # extract the body object name from rig names
+        if self.FullRig.isChecked():
             FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
-            meshGroupName = FaceGroupName
+            meshGroupNameList = [FaceGroupName, 'Hand_Tech_Parts', 'Shoes', 'Hand_Gloves', 'LegGuards', 'Trousers',
+                                 'T_Shirts', 'Beard', 'Hairs']
+            print('fullRig')
+            self.fullRigFlag = True
 
-        elif self.Beard.isChecked():
-            meshGroupName = 'Beard'
+            self.selectMultipleMeshGroups(meshGroupNameList)
 
-        elif self.Hair.isChecked():
-            meshGroupName = 'Hairs'
+        else:
+            self.fullRigFlag = False
+            meshGroupName = None
+            if self.Face.isChecked():
+                # extract the body object name from rig names
+                FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
+                meshGroupName = FaceGroupName
 
+
+            elif self.Beard.isChecked():
+                meshGroupName = 'Beard'
+
+            elif self.Hair.isChecked():
+                meshGroupName = 'Hairs'
+
+            self.selectSingleMeshGroup(meshGroupName)
+
+    def selectSingleMeshGroup(self, meshGroupName):
         # get the list of visible meshes in the specific group
         try:
             childList = cmds.ls(cmds.listRelatives(meshGroupName, c=True), v=True)
@@ -148,6 +165,32 @@ class ExportHierachy(QWidget):
         cmds.select(cleanedChildList)
         self.groupToGeometry()
 
+    def selectMultipleMeshGroups(self, meshGroupNameList):
+
+        cmds.select(meshGroupNameList)
+        self.groupToGeometry()
+
+    def cleanFullRig(self):
+        FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
+
+        geoChildList = cmds.listRelatives(cmds.ls(sl=True)[0], c=True)
+
+        for geoChild in geoChildList:
+
+            geoGrandChildList = cmds.listRelatives(geoChild, c=True)
+            if len(geoGrandChildList) > 0:
+                for geoGrandChild in geoGrandChildList:
+                    visibility_value = cmds.getAttr(geoGrandChild + ".visibility")
+
+                    removals = ['proxy']
+                    if (geoGrandChild in removals) or visibility_value == 0:
+                        cmds.delete(geoGrandChild)
+
+
+            if geoChild == FaceGroupName:
+                cmds.rename(geoChild, 'Body')
+
+
     # function to parent the selected layers to the geometry
     def groupToGeometry(self):
         # begin the undo scope
@@ -159,6 +202,9 @@ class ExportHierachy(QWidget):
             cmds.group()
             cmds.rename(cmds.ls(sl=True)[0], 'Geometry')
             self.isGeometryParentTo_W = True
+            if self.fullRigFlag:
+                self.cleanFullRig()
+
         finally:
             print('chunk open')
 
