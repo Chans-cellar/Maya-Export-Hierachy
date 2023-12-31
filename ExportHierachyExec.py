@@ -121,7 +121,7 @@ class ExportHierachy(QWidget):
         if self.FullRig.isChecked():
             FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
             meshGroupNameList = [FaceGroupName, 'Hand_Tech_Parts', 'Shoes', 'Hand_Gloves', 'LegGuards', 'Trousers',
-                                 'T_Shirts', 'Beard', 'Hairs']
+                                 'T_Shirts', 'Beard', 'Hairs', 'Caps']
             print('fullRig')
             self.fullRigFlag = True
 
@@ -166,8 +166,12 @@ class ExportHierachy(QWidget):
         self.groupToGeometry()
 
     def selectMultipleMeshGroups(self, meshGroupNameList):
-
-        cmds.select(meshGroupNameList)
+        cmds.select(clear=True)
+        for meshGroupName in meshGroupNameList:
+            try:
+                cmds.select(meshGroupName, af=True)
+            except:
+                pass
         self.groupToGeometry()
 
     def cleanFullRig(self):
@@ -186,10 +190,8 @@ class ExportHierachy(QWidget):
                     if (geoGrandChild in removals) or visibility_value == 0:
                         cmds.delete(geoGrandChild)
 
-
             if geoChild == FaceGroupName:
                 cmds.rename(geoChild, 'Body')
-
 
     # function to parent the selected layers to the geometry
     def groupToGeometry(self):
