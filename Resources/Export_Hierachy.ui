@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
-    <height>211</height>
+    <width>379</width>
+    <height>248</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="RigExport_Tab">
      <attribute name="title">
@@ -146,28 +146,51 @@
      <attribute name="title">
       <string>Animation Export</string>
      </attribute>
-     <widget class="QScrollArea" name="scrollArea">
+     <widget class="QCheckBox" name="facialCheckBox">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>50</y>
-        <width>120</width>
-        <height>87</height>
+        <x>120</x>
+        <y>30</y>
+        <width>151</width>
+        <height>20</height>
        </rect>
       </property>
-      <property name="widgetResizable">
-       <bool>true</bool>
+      <property name="text">
+       <string>With Facial Animation</string>
       </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>118</width>
-         <height>85</height>
-        </rect>
-       </property>
-      </widget>
+     </widget>
+     <widget class="QWidget" name="">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>70</y>
+        <width>191</width>
+        <height>100</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="refImport_Button">
+         <property name="text">
+          <string>Import Reference</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="bakeAnim_Button">
+         <property name="text">
+          <string>Bake Animation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="extractLayers_Button">
+         <property name="text">
+          <string>Create Hierachy</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </widget>
@@ -177,7 +200,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>383</width>
+     <width>379</width>
      <height>26</height>
     </rect>
    </property>

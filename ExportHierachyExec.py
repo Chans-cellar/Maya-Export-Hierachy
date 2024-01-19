@@ -48,11 +48,15 @@ class ExportHierachy(QWidget):
         self.FullRig = self.ui.FullRig_RadioButton
 
         self.ui.createHierachy_Button.clicked.connect(self.createHierachy)
-
+        self.ui.refImport_Button.clicked.connect(self.load_Reference)
+        self.ui.extractLayers_Button.clicked.connect(self.create_AnimExports)
+        # self.ui.
         self.loadRigName()
 
     def run_UI(self):
         self.ui.show()
+
+    # ----------------RIG EXPORT FUNCTIONS-----------------
 
     def loadRigName(self):
         self.rigGroup_comboBox.clear()
@@ -100,6 +104,7 @@ class ExportHierachy(QWidget):
     # function to un-parent the deformation system
     def unparentSkeleton(self):
 
+
         cmds.select('DeformationSystem')
         cmds.parent(w=True)
         self.isSkeletonParentTo_W = True
@@ -120,8 +125,8 @@ class ExportHierachy(QWidget):
 
         if self.FullRig.isChecked():
             FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
-            meshGroupNameList = [FaceGroupName, 'Hand_Tech_Parts', 'Shoes', 'Hand_Gloves', 'LegGuards', 'Trousers',
-                                 'T_Shirts', 'Beard', 'Hairs', 'Caps']
+            meshGroupNameList = ['Body', 'HandTech', 'Shoes', 'HandGloves', 'LegGuards', 'Trousers',
+                                 'Tshirts', 'Beards', 'Hairs', 'Caps', 'EarPieces', 'HeadGears']
             print('fullRig')
             self.fullRigFlag = True
 
@@ -132,12 +137,12 @@ class ExportHierachy(QWidget):
             meshGroupName = None
             if self.Face.isChecked():
                 # extract the body object name from rig names
-                FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
-                meshGroupName = FaceGroupName
+                # FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
+                meshGroupName = 'Body'
 
 
             elif self.Beard.isChecked():
-                meshGroupName = 'Beard'
+                meshGroupName = 'Beards'
 
             elif self.Hair.isChecked():
                 meshGroupName = 'Hairs'
@@ -163,7 +168,7 @@ class ExportHierachy(QWidget):
 
         # select the list of objects
         cmds.select(cleanedChildList)
-        self.groupToGeometry()
+        self.group_ToGeometry()
 
     def selectMultipleMeshGroups(self, meshGroupNameList):
         cmds.select(clear=True)
@@ -172,7 +177,7 @@ class ExportHierachy(QWidget):
                 cmds.select(meshGroupName, af=True)
             except:
                 pass
-        self.groupToGeometry()
+        self.group_ToGeometry()
 
     def cleanFullRig(self):
         FaceGroupName = str(self.rigGroup_comboBox.currentText()).rsplit('Rig')[0]
@@ -194,7 +199,7 @@ class ExportHierachy(QWidget):
                 cmds.rename(geoChild, 'Body')
 
     # function to parent the selected layers to the geometry
-    def groupToGeometry(self):
+    def group_ToGeometry(self):
         # begin the undo scope
         cmds.undoInfo(openChunk=True)
 
@@ -209,6 +214,36 @@ class ExportHierachy(QWidget):
 
         finally:
             print('chunk open')
+
+    # ---------------ANIMATION EXPORT FUNCTIONS-------------------------------
+    def load_Reference(self):
+        all_ref_paths = cmds.file(q=True, reference=True) or []  # Get a list of all top-level references in the scene.
+
+        for ref_path in all_ref_paths:
+            if cmds.referenceQuery(ref_path, isLoaded=True):
+                cmds.file(ref_path, importReference=True)  # Import the reference.
+                print('object imported from reference')
+
+        self.remove_Namespaces()
+
+    def remove_Namespaces(self):
+        defaults = ['UI', 'shared']
+        namespaces = cmds.namespaceInfo(listOnlyNamespaces=True)
+        filtered_Namespaces = [i for i in namespaces if i not in defaults]  # Remove default namespaces from namespaces
+        for ns in filtered_Namespaces:
+            cmds.namespace(removeNamespace=ns, mergeNamespaceWithParent=True)
+            print('Namespace ' + ns + ' Removed')
+
+    def merge_AnimLayers(self):
+        animation_layers = cmds.ls(type='animLayer')
+        cmds.select(animation_layers)
+        print(animation_layers)
+
+    def create_AnimExports(self):
+        self.fullRigFlag = False
+        animExportMeshList = ['Body', 'Beards']
+        self.unparentSkeleton()
+        self.selectMultipleMeshGroups(animExportMeshList)
 
 
 try:
